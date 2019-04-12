@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-csvtomd 0.2.1
+csvtoconfmd
 
 Convert your CSV files into Markdown tables.
 
@@ -60,7 +60,7 @@ def pad_cells(table):
     return table
 
 
-def horiz_div(col_widths, horiz, vert, padding):
+def horiz_div(col_widths, vert, padding):
     """
     Create the column dividers for a table with given column widths.
 
@@ -69,16 +69,21 @@ def horiz_div(col_widths, horiz, vert, padding):
     vert: the character to use for a vertical divider
     padding: amount of padding to add to each side of a column
     """
-    horizs = [horiz * w for w in col_widths]
+    #horizs = [horiz * w for w in col_widths]
     div = ''.join([padding * horiz, vert, padding * horiz])
     return div.join(horizs)
 
 
-def add_dividers(row, divider, padding):
+def add_dividers(row, divider, padding, cat):
     """Add dividers and padding to a row of cells and return a string."""
-    div = ''.join([padding * ' ', divider, padding * ' '])
-    return div.join(row)
+    row.insert(0, " ")
+    row.append(" ")
+    if cat == 1:
+        div = ''.join([divider, divider, padding * ' '])
+    else:
+        div = ''.join([ divider, padding * ' '])
 
+    return div.join(row)
 
 def md_table(table, *, padding=DEFAULT_PADDING, divider='|', header_div='-'):
     """
@@ -95,12 +100,11 @@ def md_table(table, *, padding=DEFAULT_PADDING, divider='|', header_div='-'):
     body = table[1:]
 
     col_widths = [len(cell) for cell in header]
-    horiz = horiz_div(col_widths, header_div, divider, padding)
 
-    header = add_dividers(header, divider, padding)
-    body = [add_dividers(row, divider, padding) for row in body]
+    header = add_dividers(header, divider, padding, cat=1)
+    body = [add_dividers(row, divider, padding, cat=2) for row in body]
 
-    table = [header, horiz]
+    table = [header]
     table.extend(body)
     table = [row.rstrip() for row in table]
     return '\n'.join(table)
@@ -108,7 +112,6 @@ def md_table(table, *, padding=DEFAULT_PADDING, divider='|', header_div='-'):
 
 def csv_to_table(file, delimiter):
     return list(csv.reader(file, delimiter=delimiter))
-
 
 def main():
     parser = argparse.ArgumentParser(
